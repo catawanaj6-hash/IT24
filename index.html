@@ -11,6 +11,7 @@
     </style>
 </head>
 <body>
+
     <h1>Todo List</h1>
 
     <input
@@ -68,7 +69,6 @@
             const doneBtn = document.createElement('button');
             doneBtn.type = 'button';
             doneBtn.textContent = 'Done';
-            doneBtn.style.marginLeft = '8px';
 
             doneBtn.addEventListener('click', () => {
                 if (li.classList.contains('done')) {
