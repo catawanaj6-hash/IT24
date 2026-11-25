@@ -27,7 +27,7 @@
 
 <script>
 
-    const apiKey = "YOUR_OPENWEATHER_API_KEY";
+    const apiKey = "93e17e530d716cfcd4ce2c535ac624bf";
 
 </script>
 
@@ -62,6 +62,38 @@ async function getWeather() {
     } catch (error) {
 
         alert("Error: " + error.message);
+
+        function getGPSLocation() {
+
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser.");
+        return;
+    }
+
+    document.getElementById("locationResult").innerHTML =
+        "Getting your location...";
+
+    navigator.geolocation.getCurrentPosition(
+
+        function(position) {
+
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            getWeatherByCoordinates(latitude, longitude);
+
+        },
+
+        function(error) {
+
+            document.getElementById("locationResult").innerHTML = "";
+
+            alert("GPS Error: " + error.message);
+
+        }
+
+    );
+}
 
     }
 }
