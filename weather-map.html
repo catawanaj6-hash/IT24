@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Forecast App</title>
 </head>
+
 <body>
 
     <h1>Weather Forecast Application</h1>
@@ -23,9 +24,11 @@
 
     <div id="forecastResult"></div>
 
+
     <script>
 
-        const apiKey = "YOUR_OPENWEATHERMAP_API_KEY";
+        const apiKey = "93e17e530d716cfcd4ce2c535ac624bf";
+
 
         // MANUAL LOCATION
         async function getWeather() {
@@ -60,6 +63,7 @@
                 alert("Error: " + error.message);
 
             }
+
         }
 
 
@@ -67,8 +71,10 @@
         function getGPSLocation() {
 
             if (!navigator.geolocation) {
+
                 alert("Geolocation is not supported by your browser.");
                 return;
+
             }
 
             document.getElementById("locationResult").innerHTML =
@@ -94,6 +100,7 @@
                 }
 
             );
+
         }
 
 
@@ -107,6 +114,7 @@
                 `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
 
             try {
+
 
                 // CURRENT WEATHER
                 const weatherResponse = await fetch(weatherUrl);
@@ -148,42 +156,50 @@
 
                 const forecastData = await forecastResponse.json();
 
-                let forecastHTML = `
+                const forecastResult =
+                    document.getElementById("forecastResult");
+
+                forecastResult.innerHTML = `
                     <h2>5-Day Weather Forecast</h2>
                 `;
 
-                forecastData.list.forEach((item, index) => {
 
-                    // Display one forecast every 24 hours
-                    if (index % 8 === 0) {
+                // DISPLAY ONE FORECAST EVERY DAY AT 12:00 PM
+                const dailyForecast = forecastData.list.filter(item =>
+                    item.dt_txt.includes("12:00:00")
+                );
 
-                        forecastHTML += `
 
-                            <div>
+                dailyForecast.forEach(item => {
 
-                                <h3>${new Date(item.dt * 1000).toLocaleDateString()}</h3>
+                    forecastResult.innerHTML += `
 
-                                <img src="https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png">
+                        <hr>
 
-                                <p>Temperature: ${item.main.temp} °C</p>
+                        <h3>${new Date(item.dt * 1000).toLocaleDateString()}</h3>
 
-                                <p>Weather: ${item.weather[0].description}</p>
+                        <img src="https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png">
 
-                                <p>Humidity: ${item.main.humidity}%</p>
+                        <p>Temperature: ${item.main.temp} °C</p>
 
-                                <p>Wind Speed: ${item.wind.speed} m/s</p>
+                        <p>Weather: ${item.weather[0].description}</p>
 
-                            </div>
+                        <p>Humidity: ${item.main.humidity}%</p>
 
-                            <hr>
+                        <p>Wind Speed: ${item.wind.speed} m/s</p>
 
-                        `;
-                    }
+                    `;
 
                 });
 
-                document.getElementById("forecastResult").innerHTML =
-                    forecastHTML;
+
+                if (dailyForecast.length === 0) {
+
+                    forecastResult.innerHTML +=
+                        "<p>No daily forecast available.</p>";
+
+                }
+
 
             } catch (error) {
 
