@@ -1,4 +1,5 @@
-    <!DOCTYPE html>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -22,78 +23,177 @@
 
     <div id="forecastResult"></div>
 
-</body>
-</html>
+    <script>
 
-<script>
+        const apiKey = "YOUR_OPENWEATHERMAP_API_KEY";
 
-    const apiKey = "93e17e530d716cfcd4ce2c535ac624bf";
+        // MANUAL LOCATION
+        async function getWeather() {
 
-</script>
+            const city = prompt("Enter a city name");
 
-async function getWeather() {
+            if (!city) {
+                alert("No city entered");
+                return;
+            }
 
-    const city = prompt("Enter a city name");
+            const url =
+                `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
 
-    if (!city) {
-        alert("No city entered");
-        return;
-    }
+            try {
 
-    const url =
-        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+                const response = await fetch(url);
 
+                if (!response.ok) {
+                    throw new Error("City not found");
+                }
 
-    try {
+                const data = await response.json();
 
-        const response = await fetch(url);
+                getWeatherByCoordinates(
+                    data.coord.lat,
+                    data.coord.lon
+                );
 
-        if (!response.ok) {
-            throw new Error("City not found");
+            } catch (error) {
+
+                alert("Error: " + error.message);
+
+            }
         }
 
-        const data = await response.json();
 
-        getWeatherByCoordinates(
-            data.coord.lat,
-            data.coord.lon
-        );
-
-    } catch (error) {
-
-        alert("Error: " + error.message);
-
+        // GPS LOCATION
         function getGPSLocation() {
 
-    if (!navigator.geolocation) {
-        alert("Geolocation is not supported by your browser.");
-        return;
-    }
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
 
-    document.getElementById("locationResult").innerHTML =
-        "Getting your location...";
+            document.getElementById("locationResult").innerHTML =
+                "Getting your location...";
 
-    navigator.geolocation.getCurrentPosition(
+            navigator.geolocation.getCurrentPosition(
 
-        function(position) {
+                function(position) {
 
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
 
-            getWeatherByCoordinates(latitude, longitude);
+                    getWeatherByCoordinates(latitude, longitude);
 
-        },
+                },
 
-        function(error) {
+                function(error) {
 
-            document.getElementById("locationResult").innerHTML = "";
+                    document.getElementById("locationResult").innerHTML = "";
 
-            alert("GPS Error: " + error.message);
+                    alert("GPS Error: " + error.message);
+
+                }
+
+            );
+        }
+
+
+        // GET WEATHER USING COORDINATES
+        async function getWeatherByCoordinates(latitude, longitude) {
+
+            const weatherUrl =
+                `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+
+            const forecastUrl =
+                `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+
+            try {
+
+                // CURRENT WEATHER
+                const weatherResponse = await fetch(weatherUrl);
+
+                if (!weatherResponse.ok) {
+                    throw new Error("Unable to retrieve weather");
+                }
+
+                const data = await weatherResponse.json();
+
+                document.getElementById("locationResult").innerHTML =
+                    `Location: ${data.name}, ${data.sys.country}`;
+
+                document.getElementById("weatherResult").innerHTML = `
+
+                    <h2>Current Weather</h2>
+
+                    <h3>${data.name}, ${data.sys.country}</h3>
+
+                    <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png">
+
+                    <p>Temperature: ${data.main.temp} °C</p>
+
+                    <p>Weather: ${data.weather[0].description}</p>
+
+                    <p>Humidity: ${data.main.humidity}%</p>
+
+                    <p>Wind Speed: ${data.wind.speed} m/s</p>
+
+                `;
+
+
+                // 5-DAY WEATHER FORECAST
+                const forecastResponse = await fetch(forecastUrl);
+
+                if (!forecastResponse.ok) {
+                    throw new Error("Unable to retrieve forecast");
+                }
+
+                const forecastData = await forecastResponse.json();
+
+                let forecastHTML = `
+                    <h2>5-Day Weather Forecast</h2>
+                `;
+
+                forecastData.list.forEach((item, index) => {
+
+                    // Display one forecast every 24 hours
+                    if (index % 8 === 0) {
+
+                        forecastHTML += `
+
+                            <div>
+
+                                <h3>${new Date(item.dt * 1000).toLocaleDateString()}</h3>
+
+                                <img src="https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png">
+
+                                <p>Temperature: ${item.main.temp} °C</p>
+
+                                <p>Weather: ${item.weather[0].description}</p>
+
+                                <p>Humidity: ${item.main.humidity}%</p>
+
+                                <p>Wind Speed: ${item.wind.speed} m/s</p>
+
+                            </div>
+
+                            <hr>
+
+                        `;
+                    }
+
+                });
+
+                document.getElementById("forecastResult").innerHTML =
+                    forecastHTML;
+
+            } catch (error) {
+
+                alert("Error: " + error.message);
+
+            }
 
         }
 
-    );
-}
+    </script>
 
-    }
-}
+</body>
+</html>
